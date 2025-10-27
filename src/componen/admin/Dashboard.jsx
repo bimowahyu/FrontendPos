@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { 
   Chart as ChartJS, 
@@ -14,38 +13,21 @@ import {
   Filler
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
-import { justifyContent, styled, useTheme } from "@mui/system";
+import { styled } from "@mui/system";
 import axios from 'axios';
 import { 
-  FaUsers, 
   FaBox, 
   FaShoppingCart, 
   FaMoneyBillWave,
-  FaChartBar,
-  FaCog,
-  FaUserCog,
-  FaBoxes,
-  FaTable,
-  FaBell,
-  FaArrowUp,
-  FaArrowDown,
-  FaEye,
-  FaFilter,
-  FaCalendarAlt
+  FaChartBar
 } from 'react-icons/fa';
 import {
   Typography,
-  Container,
   Grid,
   Card,
   CardContent,
   Box,
-  Avatar,
-  Paper,
   useMediaQuery,
-  Skeleton,
-  IconButton,
-  Chip,
   Button,
   Table,
   TableBody,
@@ -53,11 +35,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Chip,
   LinearProgress
 } from "@mui/material";
-import Me from "../../fitur/AuthSlice"
-import { getApiBaseUrl } from '../api';
 import { useSelector } from "react-redux";
+import { getApiBaseUrl } from '../api';
 
 ChartJS.register(
   CategoryScale,
@@ -152,13 +134,18 @@ const ProgressCard = styled(Card)(({ theme }) => ({
   height: '160px'
 }));
 
-const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [transactions, setTransactions] = useState([]);
+const DashboardAdminPages = () => {
+  const [dashboardData, setDashboardData] = useState({
+    totalBarang: 0,
+    totalKategori: 0,
+    totalTransaksi: 0,
+    totalRevenue: 0,
+    barangData: [],
+    kategoriData: [],
+    transaksiData: []
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useSelector((state) => state.auth || {});
 
   useEffect(() => {
@@ -169,14 +156,32 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Fetch stats and transactions simultaneously
-      const [statsResponse, transactionsResponse] = await Promise.all([
-        axios.get(`${getApiBaseUrl()}/total`, {withCredentials: true}),
-        axios.get(`${getApiBaseUrl()}/gettransaksi?page=1&limit=1000`, {withCredentials: true})
+      // Fetch data dari semua API
+      const [barangResponse, kategoriResponse, transaksiResponse] = await Promise.all([
+        axios.get(`${getApiBaseUrl()}/getbarangmobile`,{withCredentials: true}),
+         axios.get(`${getApiBaseUrl()}/getkategori`,{withCredentials: true}),
+         axios.get(`${getApiBaseUrl()}/gettransaksi`,{withCredentials: true})
       ]);
-      
-      setStats(statsResponse.data);
-      setTransactions(transactionsResponse.data.data || []);
+
+      const barangData = barangResponse.data.data || [];
+      const kategoriData = kategoriResponse.data.data || [];
+      const transaksiData = transaksiResponse.data.data || [];
+
+      // Hitung total revenue dari transaksi
+      const totalRevenue = transaksiData.reduce((total, transaksi) => {
+        return total + parseFloat(transaksi.totaljual || 0);
+      }, 0);
+
+      setDashboardData({
+        totalBarang: barangData.length,
+        totalKategori: kategoriData.length,
+        totalTransaksi: transaksiData.length,
+        totalRevenue: totalRevenue,
+        barangData: barangData,
+        kategoriData: kategoriData,
+        transaksiData: transaksiData
+      });
+
     } catch (err) {
       setError('Gagal memuat data dashboard');
       console.error('Error fetching dashboard data:', err);
@@ -185,51 +190,11 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Box textAlign="center">
-          <Box
-            sx={{
-              width: 60,
-              height: 60,
-              border: "3px solid #f0f0f0",
-              borderTop: "3px solid #667eea",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              margin: "0 auto 16px",
-              "@keyframes spin": {
-                "0%": { transform: "rotate(0deg)" },
-                "100%": { transform: "rotate(360deg)" },
-              },
-            }}
-          />
-          <Typography variant="h6" color="text.secondary">
-            Loading Dashboard...
-          </Typography>
-        </Box>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: '16px' }}>
-          <Typography variant="h6" color="error" gutterBottom>
-            {error}
-          </Typography>
-          <Button onClick={fetchDashboardData} variant="contained" sx={{ mt: 2 }}>
-            Try Again
-          </Button>
-        </Card>
-      </Box>
-    );
-  }
-
-  // Process transaction data for charts
+  // Process transaction data untuk charts
   const processTransactionData = () => {
-    if (!transactions || transactions.length === 0) {
+    const { transaksiData } = dashboardData;
+    
+    if (!transaksiData || transaksiData.length === 0) {
       return {
         dailyRevenue: [],
         paymentMethods: { cash: 0, qris: 0 },
@@ -237,7 +202,7 @@ const Dashboard = () => {
       };
     }
 
-    // Create array of last 7 days
+    // Data revenue 7 hari terakhir
     const last7Days = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
@@ -251,7 +216,8 @@ const Dashboard = () => {
         fullDate: date.toISOString().split('T')[0]
       });
     }
-    const dailyRevenueMap = transactions.reduce((acc, transaction) => {
+
+    const dailyRevenueMap = transaksiData.reduce((acc, transaction) => {
       const transactionDate = new Date(transaction.tanggal);
       const dateKey = transactionDate.toISOString().split('T')[0]; 
       acc[dateKey] = (acc[dateKey] || 0) + parseFloat(transaction.totaljual || 0);
@@ -263,7 +229,9 @@ const Dashboard = () => {
       amount: dailyRevenueMap[day.fullDate] || 0,
       fullDate: day.fullDate
     }));
-    const paymentMethods = transactions.reduce((acc, transaction) => {
+
+    // Data metode pembayaran
+    const paymentMethods = transaksiData.reduce((acc, transaction) => {
       const method = transaction.pembayaran?.toLowerCase() || 'cash';
       acc[method] = (acc[method] || 0) + 1;
       return acc;
@@ -278,12 +246,13 @@ const Dashboard = () => {
 
   const chartData = processTransactionData();
 
+  // Line Chart Data untuk Revenue
   const lineChartData = {
-    labels: chartData.dailyRevenue.map(item => item.date).slice(-7), 
+    labels: chartData.dailyRevenue.map(item => item.date),
     datasets: [
       {
-        label: 'Revenue',
-        data: chartData.dailyRevenue.map(item => item.amount / 1000).slice(-7),
+        label: 'Revenue Harian',
+        data: chartData.dailyRevenue.map(item => item.amount),
         borderColor: '#667eea',
         backgroundColor: 'rgba(102, 126, 234, 0.1)',
         fill: true,
@@ -297,15 +266,16 @@ const Dashboard = () => {
     ],
   };
 
-  const totalTransactions = (stats?.cash_transactions || 0) + (stats?.qris_transactions || 0);
-  const cashPercentage = totalTransactions > 0 ? (stats?.cash_transactions / totalTransactions) * 100 : 0;
-  const qrisPercentage = totalTransactions > 0 ? (stats?.qris_transactions / totalTransactions) * 100 : 0;
+  // Doughnut Chart Data untuk Metode Pembayaran
+  const totalTransactions = dashboardData.totalTransaksi;
+  const cashCount = chartData.paymentMethods.cash;
+  const qrisCount = chartData.paymentMethods.qris;
   
   const doughnutData = {
     labels: ['Cash', 'QRIS'],
     datasets: [
       {
-        data: [cashPercentage, qrisPercentage],
+        data: [cashCount, qrisCount],
         backgroundColor: ['#667eea', '#f093fb'],
         borderWidth: 0,
         cutout: '70%',
@@ -376,18 +346,60 @@ const Dashboard = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Box textAlign="center">
+          <Box
+            sx={{
+              width: 60,
+              height: 60,
+              border: "3px solid #f0f0f0",
+              borderTop: "3px solid #667eea",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 16px",
+              "@keyframes spin": {
+                "0%": { transform: "rotate(0deg)" },
+                "100%": { transform: "rotate(360deg)" },
+              },
+            }}
+          />
+          <Typography variant="h6" color="text.secondary">
+            Loading Dashboard...
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <Card sx={{ p: 4, textAlign: 'center', borderRadius: '16px' }}>
+          <Typography variant="h6" color="error" gutterBottom>
+            {error}
+          </Typography>
+          <Button onClick={fetchDashboardData} variant="contained" sx={{ mt: 2 }}>
+            Coba Lagi
+          </Button>
+        </Card>
+      </Box>
+    );
+  }
+
   return (
     <DashboardContainer>
-      {/* Header with Welcome and Revenue */}
+      {/* Header dengan Welcome dan Revenue */}
       <HeaderSection>
         <WelcomeRevenueCard>
           <Grid container spacing={3} alignItems="center" justifyContent="space-between">
             <Grid item xs={12} md={6}>
               <Typography variant="h5" sx={{ mb: 1, fontWeight: 600 }}>
-               Selamat datang kembali, {user?.username || "Admin"}
+                Selamat datang kembali, {user?.username || "Admin"}
               </Typography>
               <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                Selamat bekerja
+                Selamat bekerja hari ini!
               </Typography>
             </Grid>
             <Grid item xs={12} md={6} sx={{ textAlign: { xs: 'left', md: 'right' } }}>
@@ -395,11 +407,11 @@ const Dashboard = () => {
                 Total Revenue
               </Typography>
               <Typography variant="h3" sx={{ fontWeight: 50, mb: 1 }}>
-                {formatCurrency(parseFloat(stats?.completed_sales || 0))}
+                {formatCurrency(dashboardData.totalRevenue)}
               </Typography>
-              {/* <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                +{stats?.total_transactions || 0} transactions this month
-              </Typography> */}
+              <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                {dashboardData.totalTransaksi} transaksi
+              </Typography>
             </Grid>
           </Grid>
         </WelcomeRevenueCard>
@@ -409,6 +421,7 @@ const Dashboard = () => {
         {/* Metric Cards Row */}
         <Grid item xs={12}>
           <Grid container spacing={2}>
+            {/* Total Barang Card */}
             <Grid item xs={6} md={3}>
               <MetricCard bgcolor="#fff">
                 <CardContent sx={{ p: 2 }}>
@@ -422,19 +435,20 @@ const Dashboard = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <FaUsers color="#667eea" />
+                      <FaBox color="#667eea" />
                     </Box>
                   </Box>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#667eea' }}>
-                    {stats?.total_users || 0}
+                    {dashboardData.totalBarang}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Total Users
+                    Total Barang
                   </Typography>
                 </CardContent>
               </MetricCard>
             </Grid>
             
+            {/* Total Kategori Card */}
             <Grid item xs={6} md={3}>
               <MetricCard bgcolor="#fff">
                 <CardContent sx={{ p: 2 }}>
@@ -448,19 +462,20 @@ const Dashboard = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <FaBox color="#f093fb" />
+                      <FaChartBar color="#f093fb" />
                     </Box>
                   </Box>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#f093fb' }}>
-                    {stats?.total_products || 0}
+                    {dashboardData.totalKategori}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    All Products
+                    Total Kategori
                   </Typography>
                 </CardContent>
               </MetricCard>
             </Grid>
             
+            {/* Total Transaksi Card */}
             <Grid item xs={6} md={3}>
               <MetricCard bgcolor="#fff">
                 <CardContent sx={{ p: 2 }}>
@@ -478,16 +493,16 @@ const Dashboard = () => {
                     </Box>
                   </Box>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#43e97b' }}>
-                    {stats?.total_transactions || 0}
+                    {dashboardData.totalTransaksi}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Total Orders
+                    Total Transaksi
                   </Typography>
                 </CardContent>
               </MetricCard>
-              
             </Grid>
             
+            {/* Revenue Card */}
             <Grid item xs={6} md={3}>
               <MetricCard bgcolor="#fff">
                 <CardContent sx={{ p: 2 }}>
@@ -501,99 +516,70 @@ const Dashboard = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <FaUsers color="#ffa726" />
+                      <FaMoneyBillWave color="#ffa726" />
                     </Box>
                   </Box>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#ffa726' }}>
-                    {stats?.total_customers || 0}
+                    {formatCurrency(dashboardData.totalRevenue)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Customers
+                    Total Revenue
                   </Typography>
                 </CardContent>
               </MetricCard>
             </Grid>
           </Grid>
-             {/* Sales Performance Card - Moved below metric cards */}
-             <Grid item xs={12} sx={{ mt: 5, mb: 3, px: 2 }}>
-          <ProgressCard>
-            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-              Peforma Penjualan
-            </Typography>
-            
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2">Completed</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {formatCurrency(parseFloat(stats?.completed_sales || 0))}
-                </Typography>
-              </Box>
-              <LinearProgress 
-                variant="determinate" 
-                value={90} 
-                sx={{ 
-                  height: 8, 
-                  borderRadius: 4,
-                  backgroundColor: 'rgba(67, 233, 123, 0.2)',
-                  '& .MuiLinearProgress-bar': {
-                    backgroundColor: '#43e97b',
-                    borderRadius: 4
-                  }
-                }} 
-              />
-            </Box>
-
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2">Pending</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {formatCurrency(parseFloat(stats?.pending_sales || 0))}
-                </Typography>
-              </Box>
-              <LinearProgress 
-                variant="determinate" 
-                value={10} 
-                sx={{ 
-                  height: 8, 
-                  borderRadius: 4,
-                  backgroundColor: 'rgba(255, 167, 38, 0.2)',
-                  '& .MuiLinearProgress-bar': {
-                    backgroundColor: '#ffa726',
-                    borderRadius: 4
-                  }
-                }} 
-              />
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Today's Sales
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: '#667eea' }}>
-                {formatCurrency(parseFloat(stats?.today_sales || 0))}
-              </Typography>
-            </Box>
-          </ProgressCard>
         </Grid>
-        </Grid>
-
-     
 
         {/* Charts Row */}
- <Grid item xs={12} md={12} width={530}>
-  <ChartCard>
-    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-      Penjualan
-    </Typography>
-    <Box sx={{ height: '320px' }}>
-      <Line data={lineChartData} options={chartOptions} />
-    </Box>
-  </ChartCard>
-</Grid>
-
-
-        {/* Recent Sales Table */}
         <Grid item xs={12} md={8}>
+          <ChartCard>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Revenue 7 Hari Terakhir
+            </Typography>
+            <Box sx={{ height: '320px' }}>
+              <Line data={lineChartData} options={chartOptions} />
+            </Box>
+          </ChartCard>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <ChartCard>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Metode Pembayaran
+            </Typography>
+            <Box sx={{ height: '320px', position: 'relative' }}>
+              <Doughnut data={doughnutData} options={doughnutOptions} />
+              <Box sx={{ 
+                position: 'absolute', 
+                top: '50%', 
+                left: '50%', 
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center'
+              }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {dashboardData.totalTransaksi}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total
+                </Typography>
+              </Box>
+            </Box>
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, backgroundColor: '#667eea', borderRadius: '50%' }} />
+                <Typography variant="body2">Cash: {cashCount}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, backgroundColor: '#f093fb', borderRadius: '50%' }} />
+                <Typography variant="body2">QRIS: {qrisCount}</Typography>
+              </Box>
+            </Box>
+          </ChartCard>
+        </Grid>
+
+        {/* Recent Transactions Table */}
+        <Grid item xs={12}>
           <TableCard>
             <Box sx={{ p: 3, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -605,22 +591,29 @@ const Dashboard = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Order ID</TableCell>
-                    <TableCell>Customer</TableCell>
+                    <TableCell>Total</TableCell>
+                    <TableCell>Metode</TableCell>
                     <TableCell>Status</TableCell>
-                    <TableCell>Amount</TableCell>
-                    <TableCell>Date</TableCell>
+                    <TableCell>Tanggal</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {transactions.slice(0, 5).map((transaction) => (
-                    <TableRow key={transaction.id}>
+                  {dashboardData.transaksiData.slice(0, 5).map((transaction) => (
+                    <TableRow key={transaction.uuid}>
                       <TableCell>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
                           {transaction.order_id}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        {transaction.Customer?.nama || 'N/A'}
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {formatCurrency(parseFloat(transaction.totaljual || 0))}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                          {transaction.pembayaran}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Chip 
@@ -633,11 +626,6 @@ const Dashboard = () => {
                           }}
                           size="small"
                         />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {formatCurrency(parseFloat(transaction.totaljual || 0))}
-                        </Typography>
                       </TableCell>
                       <TableCell>
                         {new Date(transaction.tanggal).toLocaleDateString('id-ID')}
@@ -654,4 +642,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardAdminPages;

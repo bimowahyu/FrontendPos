@@ -70,7 +70,7 @@ export const Sidebar = () => {
 
   // Navigation items untuk aplikasi kasir
   const navItems = [
-    { to: "/dashboard", text: "Dashboard", icon: <DashboardOutlined /> },
+    { to: "/dashboardadmin", text: "Dashboard", icon: <DashboardOutlined /> },
     { to: "/transaksi", text: "Transaksi", icon: <ShoppingCartOutlined /> },
     { to: "/barang", text: "Barang", icon: <InventoryOutlined /> },
     { to: "/kategori", text: "Kategori", icon: <CategoryOutlined /> },
