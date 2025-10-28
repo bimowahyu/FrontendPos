@@ -680,9 +680,9 @@ export const Barang = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
+        {/* <Typography variant="h4" component="h1">
           Manajemen Barang
-        </Typography>
+        </Typography> */}
         <Button
           variant="contained"
           color="primary"
