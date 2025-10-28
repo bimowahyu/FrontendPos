@@ -8,6 +8,9 @@ import KategoriPages from './pages/admin/KategoriPages';
 import UserListPages from './pages/admin/UserListPages';
 import TransaksiPages from './pages/admin/TransaksiPages';
 import RekapPages from './pages/admin/RekapPages';
+
+//=============KASIR==================
+import DashboardKasirPages from './pages/Kasir/DashboardKasirPages';
 import './App.css'
 
 function App() {
@@ -24,6 +27,8 @@ function App() {
           <Route path="/user" element={<UserListPages />} />
           <Route path="/transaksi" element={<TransaksiPages />} />
           <Route path="/rekap" element={<RekapPages />} />
+
+          <Route path="/dashboardkasir" element={<DashboardKasirPages />} />
         </Routes>
       </BrowserRouter>
     </>

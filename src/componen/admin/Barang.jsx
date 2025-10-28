@@ -139,7 +139,7 @@ export const Barang = () => {
     setFormData({
       namabarang: barang.namabarang || '',
       harga: barang.harga || '',
-      kategoriId: barang.kategoriId || '',
+      kategoriId: barang.kategoriuuid || '',
       foto: null,
     });
     setPreviewImage(barang.foto ? `${API_URL}/uploads/${barang.foto}` : null);
@@ -232,7 +232,7 @@ export const Barang = () => {
       
       formDataToSend.append('namabarang', formData.namabarang);
       formDataToSend.append('harga', formData.harga)
-      formDataToSend.append('kategoriId', formData.kategoriId);
+      formDataToSend.append('kategoriuuid', formData.kategoriId);
    
       if (formData.foto) {
         formDataToSend.append('file', formData.foto);
@@ -241,7 +241,7 @@ export const Barang = () => {
       console.log("Data create yang akan dikirim:", {
         namabarang: formData.namabarang,
         harga: formData.harga,
-        kategoriId: formData.kategoriId,
+        kategoriuuid: formData.kategoriId,
         hasFile: !!formData.foto
       });
 
@@ -275,101 +275,109 @@ export const Barang = () => {
     }
   };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm(true)) {
-      MySwal.fire({
-        icon: 'warning',
-        title: 'Data tidak valid',
-        text: 'Silakan periksa kembali form yang diisi',
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    try {
-      const formDataToSend = new FormData();
-      
-      formDataToSend.append('namabarang', formData.namabarang);
-      formDataToSend.append('harga', formData.harga);
-      formDataToSend.append('kategoriId', formData.kategoriId);
-      formDataToSend.append('stok', formData.stok);
-      if (formData.foto) {
-        formDataToSend.append('file', formData.foto);
-      }
-
-      console.log("Data update yang akan dikirim:", {
-        id: selectedBarang.id,
-        namabarang: formData.namabarang,
-        harga: formData.harga,
-        kategoriId: formData.kategoriId,
-        hasFile: !!formData.foto
-      });
-
-      const response = await axios.put(`${API_URL}/updatebarang/${selectedBarang.id}`, formDataToSend, {
-        headers: { 
-          "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true,
-      });
-
-      MySwal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: 'Data barang berhasil diperbarui!',
-        showConfirmButton: false,
-        timer: 1500
-      });
-      
-      handleCloseEditModal();
-      mutateBarang();
-      
-    } catch (error) {
-      console.error("Error update barang:", error);
-      MySwal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: error.response?.data?.message || error.response?.data?.msg || error.message || 'Terjadi kesalahan saat memperbarui data.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = (id) => {
+const handleUpdate = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm(true)) {
     MySwal.fire({
-      title: 'Apakah Anda yakin?',
-      text: 'Data yang dihapus tidak bisa dikembalikan!',
       icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Ya, hapus!',
-      cancelButtonText: 'Batal',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await axios.delete(`${API_URL}/deletebarang/${id}`, { withCredentials: true });
-          MySwal.fire(
-            'Dihapus!',
-            'Data barang berhasil dihapus.',
-            'success'
-          );
-          mutateBarang();
-        } catch (error) {
-          MySwal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: error.response?.data?.message || 'Terjadi kesalahan saat menghapus data.',
-          });
-        }
-      }
+      title: 'Data tidak valid',
+      text: 'Silakan periksa kembali form yang diisi',
     });
-  };
+    return;
+  }
 
-  // Komponen Pagination untuk mobile
+  setIsSubmitting(true);
+  
+  try {
+    const formDataToSend = new FormData();
+    
+    formDataToSend.append('namabarang', formData.namabarang);
+    formDataToSend.append('harga', formData.harga);
+    formDataToSend.append('kategoriuuid', formData.kategoriId);
+    
+    if (formData.foto) {
+      formDataToSend.append('file', formData.foto);
+    }
+
+    console.log("Data update yang akan dikirim:", {
+      uuid: selectedBarang.uuid,
+      namabarang: formData.namabarang,
+      harga: formData.harga,
+      kategoriuuid: formData.kategoriId,
+      hasFile: !!formData.foto,
+      fileName: formData.foto ? formData.foto.name : 'no file'
+    });
+
+    const response = await axios.put(`${API_URL}/updatebarang/${selectedBarang.uuid}`, formDataToSend, {
+      headers: { 
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true,
+      timeout: 30000, 
+    });
+
+    console.log("Response update:", response.data);
+
+    MySwal.fire({
+      icon: 'success',
+      title: 'Berhasil',
+      text: 'Data barang berhasil diperbarui!',
+      showConfirmButton: false,
+      timer: 1500
+    });
+    
+    handleCloseEditModal();
+    mutateBarang();
+    
+  } catch (error) {
+    console.error("Error update barang:", error);
+    console.error("Error details:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    MySwal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.response?.data?.message || error.response?.data?.msg || error.message || 'Terjadi kesalahan saat memperbarui data.',
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+const handleDelete = (uuid) => { 
+  MySwal.fire({
+    title: 'Apakah Anda yakin?',
+    text: 'Data yang dihapus tidak bisa dikembalikan!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Ya, hapus!',
+    cancelButtonText: 'Batal',
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${API_URL}/deletebarang/${uuid}`, { withCredentials: true }); 
+        MySwal.fire(
+          'Dihapus!',
+          'Data barang berhasil dihapus.',
+          'success'
+        );
+        mutateBarang();
+      } catch (error) {
+        MySwal.fire({
+          icon: 'error',
+          title: 'Gagal',
+          text: error.response?.data?.message || 'Terjadi kesalahan saat menghapus data.',
+        });
+      }
+    }
+  });
+};
   const MobilePagination = () => (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, p: 2 }}>
       <Typography variant="body2" color="text.secondary">
@@ -452,7 +460,7 @@ export const Barang = () => {
                         <IconButton onClick={() => handleOpenEditModal(barang)}>
                           <PencilSimple size={24} />
                         </IconButton>
-                        <IconButton onClick={() => handleDelete(barang.id)}>
+                        <IconButton onClick={() => handleDelete(barang.uuid)}>
                           <Trash size={24} />
                         </IconButton>
                       </Box>
@@ -498,7 +506,7 @@ export const Barang = () => {
                         <IconButton onClick={() => handleOpenEditModal(barang)}>
                           <PencilSimple size={24} color="#3f51b5" />
                         </IconButton>
-                        <IconButton onClick={() => handleDelete(barang.id)}>
+                        <IconButton onClick={() => handleDelete(barang.uuid)}>
                           <Trash size={24} color="#f44336" />
                         </IconButton>
                       </TableCell>
@@ -591,7 +599,7 @@ export const Barang = () => {
                       <MenuItem disabled>Tidak ada kategori</MenuItem>
                     )}
                     {kategoriList.map(cat => (
-                      <MenuItem key={cat.id} value={cat.id}>
+                      <MenuItem key={cat.uuid} value={cat.uuid}>
                         {cat.namakategori}
                       </MenuItem>
                     ))}
