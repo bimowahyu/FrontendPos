@@ -476,7 +476,7 @@ const DashboardAdminPages = () => {
             </Grid>
             
             {/* Total Transaksi Card */}
-            <Grid item xs={6} md={3}>
+            <Grid item xs={8} md={3}>
               <MetricCard bgcolor="#fff">
                 <CardContent sx={{ p: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -504,14 +504,14 @@ const DashboardAdminPages = () => {
             
             {/* Revenue Card */}
             <Grid item xs={6} md={3}>
-              <MetricCard bgcolor="#fff">
+             <MetricCard bgcolor="#fff">
                 <CardContent sx={{ p: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                     <Box sx={{ 
                       width: 40, 
                       height: 40, 
                       borderRadius: '10px', 
-                      background: 'rgba(255, 167, 38, 0.1)',
+                      background: 'rgba(67, 233, 123, 0.1)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -531,17 +531,8 @@ const DashboardAdminPages = () => {
           </Grid>
         </Grid>
 
-        {/* Charts Row */}
-        <Grid item xs={12} md={8}>
-          <ChartCard>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              Revenue 7 Hari Terakhir
-            </Typography>
-            <Box sx={{ height: '320px' }}>
-              <Line data={lineChartData} options={chartOptions} />
-            </Box>
-          </ChartCard>
-        </Grid>
+        {/* Charts Row
+       
 
         <Grid item xs={12} md={4}>
           <ChartCard>
@@ -576,10 +567,22 @@ const DashboardAdminPages = () => {
               </Box>
             </Box>
           </ChartCard>
-        </Grid>
+        </Grid> */}
 
-        {/* Recent Transactions Table */}
-        <Grid item xs={12}>
+       
+        </Grid>
+         <Grid item xs={12} md={8}>
+          <ChartCard>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Revenue 7 Hari Terakhir
+            </Typography>
+            <Box sx={{ height: '320px' }}>
+              <Line data={lineChartData} options={chartOptions} />
+            </Box>
+          </ChartCard>
+        </Grid>
+         {/* Recent Transactions Table */}
+      
           <TableCard>
             <Box sx={{ p: 3, borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -636,8 +639,7 @@ const DashboardAdminPages = () => {
               </Table>
             </TableContainer>
           </TableCard>
-        </Grid>
-      </Grid>
+     
     </DashboardContainer>
   );
 };

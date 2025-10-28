@@ -78,7 +78,7 @@ export const Sidebar = () => {
   ];
   const adminItems = [
     { to: "/user", text: "User Management", icon: <PersonAddOutlined /> },
-    { to: "/settings", text: "Settings", icon: <SettingsOutlined /> },
+//     { to: "/settings", text: "Settings", icon: <SettingsOutlined /> },
   ];
 
   return (

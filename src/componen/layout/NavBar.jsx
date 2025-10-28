@@ -87,8 +87,8 @@ export const NavBar = () => {
               </Link>
             </Tooltip>
 
-            <Tooltip title="Customer Management">
-              <Link to="/customer" style={{ textDecoration: 'none' }}>
+            <Tooltip title="User Management">
+              <Link to="/user" style={{ textDecoration: 'none' }}>
                 <IconButton sx={{ color: '#0A5EB0' }}>
                   <UsersIcon />
                 </IconButton>

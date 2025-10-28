@@ -445,14 +445,9 @@ export const Barang = () => {
                         sx={{ mb: 1 }} 
                       />
                       <Typography variant="subtitle1" color="text.secondary">
-                        Harga Beli(Modal): {formatRupiah(barang.harga_beli)}
+                        Harga: {formatRupiah(barang.harga)}
                       </Typography>
-                      <Typography variant="subtitle1" color="text.secondary">
-                        Harga Jual: {formatRupiah(barang.harga_jual)}
-                      </Typography>
-                      <Typography variant="subtitle1" color="text.secondary">
-                        Stok: {barang.stok || '0'}
-                      </Typography>
+                    
                       <Box sx={{ mt: 2 }}>
                         <IconButton onClick={() => handleOpenEditModal(barang)}>
                           <PencilSimple size={24} />
