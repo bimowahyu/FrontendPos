@@ -467,9 +467,6 @@ const Transaksi = () => {
                   <TableCell>No</TableCell>
                   <TableCell>Order ID</TableCell>
                   <TableCell>Total Jual</TableCell>
-                  <TableCell>Total PPN</TableCell>
-                  <TableCell>Transaksi Meja</TableCell>
-                  <TableCell>Kasir Accepted</TableCell>
                    <TableCell>Status</TableCell>
                   <TableCell>Customer</TableCell>
                   <TableCell align="right">Aksi</TableCell>
@@ -481,9 +478,7 @@ const Transaksi = () => {
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>{transaksi.order_id}</TableCell>
                     <TableCell>Rp {parseFloat(transaksi.totaljual).toLocaleString('id-ID')}</TableCell>
-                    <TableCell>Rp {parseFloat(transaksi.ppn_amount || 'Na').toLocaleString('id-ID')}</TableCell>
-                    <TableCell>{transaksi.ordermeja || 'Tidak'}</TableCell>
-                    <TableCell>{transaksi.cashier_accepted}</TableCell>
+                   
                     <TableCell> <Chip
                 label={transaksi.status_pembayaran || 'N/A'}
                 color={transaksi.status_pembayaran === 'settlement' ? 'success' : 'warning'}

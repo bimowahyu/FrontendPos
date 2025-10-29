@@ -581,7 +581,14 @@ const DashboardKasir = () => {
       <Grid container spacing={2}>
         {filteredProducts.map((product) => (
           <Grid item xs={6} sm={4} md={3} key={product.id}>
-            <ModernProductCard onClick={() => addToCart(product)}>
+           <ModernProductCard 
+              onClick={() => addToCart(product)}
+              sx={{ 
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
               <Box sx={{ position: 'relative' }}>
                 <Box sx={{
                   width: '100%',
@@ -592,6 +599,7 @@ const DashboardKasir = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  position: 'relative',
                 }}>
                   {product.foto ? (
                     <img
@@ -601,6 +609,9 @@ const DashboardKasir = () => {
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
                       }}
                     />
                   ) : (
@@ -612,7 +623,13 @@ const DashboardKasir = () => {
                 </StockBadge> */}
               </Box>
 
-              <CardContent sx={{ p: 2 }}>
+              <CardContent sx={{ 
+                p: 2, 
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
                 <Typography
                   variant="body2"
                   fontWeight={600}
