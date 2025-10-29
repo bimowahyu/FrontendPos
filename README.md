@@ -83,10 +83,10 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/bimowahyu/kasirFrontendweb.git
+git clone https://github.com/bimowahyu/FrontendPos.git
 
 # Masuk ke direktori project
-cd kasirFrontendweb
+cd FrontendPos
 
 # Install dependencies
 npm install
