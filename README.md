@@ -166,10 +166,6 @@ Untuk aplikasi production dengan TypeScript:
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-##  Tim
-
-- **Developer** - [Your Name](https://github.com/yourusername)
-
 ## Acknowledgments
 
 - [React](https://reactjs.org/)
